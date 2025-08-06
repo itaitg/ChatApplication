@@ -6,17 +6,13 @@
 #define CHATAPPLICATION_COMMUNICATE_HPP
 #include <string>
 
-enum Status
-{
-    Client,
-    Server
-};
+
 
 
 class Communicate
 {
 public:
-    explicit Communicate(int other_fd_, Status status_);
+    explicit Communicate(int other_fd_);
     ~Communicate() = default;
 
 

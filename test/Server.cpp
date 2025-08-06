@@ -4,27 +4,14 @@
 
 #include <iostream>
 
-#include "TcpServer.hpp"
-#include "Communicate.hpp"
+#include "ChatServer.hpp"
+
 
 
 int main()
 {
-    TCPServer server(6667);
+    ChatServer server(6667);
 
-    server.Accept();
-
-    Communicate talk(server.Getclientsocket(), Server);
-
-    int counter = 3;
-
-    while(counter)
-    {
-        talk.Receive();
-        std::string buffer;
-        std::getline(std::cin, buffer);
-        talk.Send(buffer);
-        --counter;
-    }
+    server.Start();
 
 }

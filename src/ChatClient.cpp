@@ -7,9 +7,7 @@
 #include <arpa/inet.h>
 
 
-
-
-#include "TcpClient.hpp"
+#include "ChatClient.hpp"
 
 #include <stdexcept>
 

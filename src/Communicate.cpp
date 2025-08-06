@@ -11,16 +11,9 @@
 #include "Communicate.hpp"
 
 
-Communicate::Communicate(const int other_fd_, Status status_): m_fd(other_fd_)
+Communicate::Communicate(const int other_fd_): m_fd(other_fd_)
 {
-    if(status_ == Client)
-    {
-        m_buddy = "Server: ";
-    }
-    else
-    {
-        m_buddy = "Client: ";
-    }
+
 }
 
 void Communicate::Receive() const
