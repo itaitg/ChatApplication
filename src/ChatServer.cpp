@@ -6,10 +6,10 @@
 #include <stdexcept>
 #include <thread>
 #include <unistd.h>
+#include <atomic>
 
 #include "ChatServer.hpp"
 
-#include <atomic>
 
 ChatServer::ChatServer(const int port_): m_max_clients(5)
 {
@@ -50,7 +50,18 @@ void ChatServer::Start()
 
 void ChatServer::Addadmin(const std::string& username_)
 {
-    m_admins.push_back(username_);
+    m_admins.emplace(username_);
+}
+
+void ChatServer::Removeadmin(const std::string& username_)
+{
+    for(const auto& name : m_admins)
+    {
+        if(username_ == name)
+        {
+            m_admins.erase(name);
+        }
+    }
 }
 
 void ChatServer::Handleclient(const int clientfd_)
@@ -108,9 +119,26 @@ void ChatServer::Handleclient(const int clientfd_)
             std::string message = m_clients[clientfd_] + ": " + from;
             Broadcast(message, clientfd_);
         }
-        else
+        else // handle commands
         {
-
+            if(from.substr(0, 5) == "/kick")
+            {
+                bool admin = false;
+                // Admin check
+                for( const auto& name : m_admins)
+                {
+                    if(m_clients[clientfd_] == name)
+                    {
+                        std::string target = from.substr(6);
+                        target.resize(target.length());
+                        Kickuser(target);
+                    }
+                    else
+                    {
+                        Sendprivate(clientfd_, "Error: Admin-only command");
+                    }
+                }
+            }
         }
     }
 
@@ -121,6 +149,22 @@ void ChatServer::Handleclient(const int clientfd_)
     Broadcast(username.c_str() + std::string(" left the chat"), clientfd_);
     close(clientfd_);
 
+}
+
+void ChatServer::Kickuser(std::string user_) //not working (can't recognise names)
+{
+    std::lock_guard lock(m_safeclients);
+    for (const auto& [fd, name] : m_clients)
+    {
+        if (name == user_)
+        {
+            send(fd, "You were kicked by admin!", 24, 0);
+            close(fd);
+            m_clients.find(fd);
+            m_clients.erase(m_clients.find(fd));
+            Broadcast(user_ + " was kicked by admin", -1);
+        }
+    }
 }
 
 
@@ -135,6 +179,10 @@ void ChatServer::Broadcast(const std::string& message_, int senderfd_)
             send(fd, message_.data(), message_.size(), 0);
         }
     }
+}
+
+void ChatServer::Sendprivate(int fd_, std::string message_)
+{
 }
 
 

@@ -18,9 +18,12 @@ void Usercommands::Commandcheck(const std::string& input_, std::atomic<bool>* ru
         }
         else if (input_ == "/help")
         {
-            std::cout << "Commands:\n"
-                      << "/quit - Exit chat\n"
-                      << "/help - Show this help\n";
+            std::cout << "Commands:" << std::endl;
+            std::cout << "/quit - Exit chat" << std::endl;
+            std::cout << "/help - Show this help" << std::endl;
+            std::cout << "ADMIN ONLY" << std::endl;
+            std::cout << "/kick <name> - Kick user from server" << std::endl;
+
         }
         else
         {

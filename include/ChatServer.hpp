@@ -9,7 +9,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
-#include <vector>
+#include <unordered_set>
 
 #include "Servercommands.hpp"
 #include "Socket.hpp"
@@ -22,15 +22,18 @@ public:
 
     void Start();
     void Addadmin(const std::string& username_);
+    void Removeadmin(const std::string& username_);
 private:
     std::unordered_map<int, std::string> m_clients;
-    std::vector<std::string> m_admins;
+    std::unordered_set<std::string> m_admins;
     std::mutex m_safeclients;
     int m_max_clients;
 
     Servercommands commands;
     void Handleclient(int clientfd_);
+    void Kickuser(std::string user_);
     void Broadcast(const std::string& message_, int senderfd_);
+    void Sendprivate(int fd_, std::string message_);
 
 };
 

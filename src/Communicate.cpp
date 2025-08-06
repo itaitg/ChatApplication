@@ -6,8 +6,6 @@
 
 #include <iostream>
 #include <netinet/in.h>
-#include <vector>
-
 #include <unistd.h>
 
 #include "Communicate.hpp"
@@ -48,16 +46,16 @@ void Communicate::Send()
     std::string userinput;
     while(m_running)
     {
-        std::cout << "> ";
         std::getline(std::cin, userinput);
         m_commands.Commandcheck(userinput, &m_running);
-        if (!m_running) break;
+        if(!m_running)
         {
-            if (send(m_fd, userinput.c_str(), userinput.size(), 0) <= 0)
-            {
-                std::cerr << "Send failed!" << std::endl;
-                m_running = false;
-            }
+            break;
+        }
+        if(send(m_fd, userinput.c_str(), userinput.size(), 0) <= 0)
+        {
+            std::cerr << "Send failed!" << std::endl;
+            m_running = false;
+        }
         }
     }
-}
