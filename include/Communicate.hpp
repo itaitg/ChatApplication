@@ -4,23 +4,25 @@
 
 #ifndef CHATAPPLICATION_COMMUNICATE_HPP
 #define CHATAPPLICATION_COMMUNICATE_HPP
+#include <atomic>
 #include <string>
-
-
+#include <thread>
 
 
 class Communicate
 {
 public:
     explicit Communicate(int other_fd_);
-    ~Communicate() = default;
+    ~Communicate();
 
-
-    void Receive() const;
-    void Send(const std::string& message_) const;
+    void Send();
 private:
     int m_fd;
     std::string m_buddy;
+    std::atomic<bool> m_running;
+    std::thread m_receivethread;
+
+    void Receivemessages();
 };
 
 

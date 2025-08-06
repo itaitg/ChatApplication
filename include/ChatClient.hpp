@@ -6,18 +6,20 @@
 #define CHATAPPLICATION_TCPCLIENT_HPP
 
 
+
 #include <string>
 
 #include "Socket.hpp"
 
-class TCPClient: Socket
+class Chatclient: Socket
 {
 public:
-    explicit TCPClient(int port_,const std::string& ip_ = "127.0.0.1");
-    ~TCPClient() = default;
+    explicit Chatclient(int port_,const std::string& ip_ = "127.0.0.1");
+    ~Chatclient() = default;
 
     int Getserversocket() const;
 private:
+
 };
 
 

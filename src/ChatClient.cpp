@@ -5,13 +5,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <stdexcept>
+#include <thread>
 
 
 #include "ChatClient.hpp"
 
-#include <stdexcept>
-
-TCPClient::TCPClient(const int port_,const std::string& ip_)
+Chatclient::Chatclient(const int port_,const std::string& ip_)
 {
     sockaddr_in serverAddress{};
     serverAddress.sin_family = AF_INET;
@@ -23,7 +23,7 @@ TCPClient::TCPClient(const int port_,const std::string& ip_)
     }
 }
 
-int TCPClient::Getserversocket() const
+int Chatclient::Getserversocket() const
 {
     return Getsocket();
 }

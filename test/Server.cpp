@@ -13,5 +13,4 @@ int main()
     ChatServer server(6667);
 
     server.Start();
-
 }
