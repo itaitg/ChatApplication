@@ -10,7 +10,7 @@
 
 int main()
 {
-    TCPClient client(6677);
+    TCPClient client(6667);
     Communicate talk(client.Getserversocket(), Client);
 
     int counter = 3;

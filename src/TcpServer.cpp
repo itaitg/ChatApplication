@@ -15,6 +15,9 @@ TCPServer::TCPServer(const int port_):m_serveraddress(), m_clientsocket()
     m_serveraddress.sin_port = htons(port_);
     m_serveraddress.sin_addr.s_addr = INADDR_ANY;
 
+    int y = 1;
+
+    setsockopt(Getsocket(), SOL_SOCKET, SO_REUSEADDR, &y, sizeof(int));
 
     if(-1 == bind(Getsocket(), reinterpret_cast<sockaddr*>(&m_serveraddress),
         sizeof(m_serveraddress)))

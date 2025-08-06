@@ -6,8 +6,10 @@
 
 #include <iostream>
 #include <netinet/in.h>
+#include <vector>
 
 #include "Communicate.hpp"
+
 
 Communicate::Communicate(const int other_fd_, Status status_): m_fd(other_fd_)
 {
@@ -23,19 +25,11 @@ Communicate::Communicate(const int other_fd_, Status status_): m_fd(other_fd_)
 
 void Communicate::Receive() const
 {
-    char buffer[1024] = {};
-    int bytesReceived = recv(m_fd, buffer, 1024, 0);
-    if (bytesReceived == -1)
-    {
-        std::cerr << "Error receiving message!" << std::endl;
-        return;
-    }
-    if (bytesReceived == 0)
-    {
-        std::cout << "Client disconnected." << std::endl;
-        return;
-    }
-    std::cout << m_buddy << std::string(buffer, 0, bytesReceived) << std::endl;
+    std::string buffer(1024, '\0');
+
+    recv(m_fd, buffer.data() , buffer.size(), 0);
+
+    std::cout << m_buddy << std::string(buffer.data(), 0, buffer.size()) << std::endl;
 }
 
 void Communicate::Send(const std::string& message_) const

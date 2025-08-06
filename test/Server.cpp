@@ -10,7 +10,7 @@
 
 int main()
 {
-    TCPServer server(6677);
+    TCPServer server(6667);
 
     server.Accept();
 
