@@ -45,7 +45,7 @@ void ChatServer::Start()
 
 void ChatServer::Handleclient(const int clientfd_)
 {
-    // 1. Get username (first message)
+    //Get username (first message)
     std::string username(256, '\0');
     const std::string buffer = {"enter username"};
 
