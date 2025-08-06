@@ -4,10 +4,13 @@
 
 #ifndef CHATAPPLICATION_COMMUNICATE_HPP
 #define CHATAPPLICATION_COMMUNICATE_HPP
+
+
 #include <atomic>
 #include <string>
 #include <thread>
 
+#include "Usercommands.hpp"
 
 class Communicate
 {
@@ -21,6 +24,7 @@ private:
     std::string m_buddy;
     std::atomic<bool> m_running;
     std::thread m_receivethread;
+    Usercommands m_commands;
 
     void Receivemessages();
 };

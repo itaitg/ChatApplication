@@ -9,6 +9,8 @@
 
 #include "ChatServer.hpp"
 
+#include <atomic>
+
 ChatServer::ChatServer(const int port_): m_max_clients(5)
 {
     sockaddr_in m_serveraddress{};
@@ -16,9 +18,12 @@ ChatServer::ChatServer(const int port_): m_max_clients(5)
     m_serveraddress.sin_port = htons(port_);
     m_serveraddress.sin_addr.s_addr = INADDR_ANY;
 
-    int y = 1;
+    timeval tv{};
+    tv.tv_sec = 2;
+    tv.tv_usec = 0;
 
-    setsockopt(Getsocket(), SOL_SOCKET, SO_REUSEADDR, &y, sizeof(int));
+    setsockopt(Getsocket(), SOL_SOCKET, SO_REUSEADDR | SO_RCVTIMEO,
+        &tv , sizeof(tv));
 
     if(-1 == bind(Getsocket(), reinterpret_cast<sockaddr*>(&m_serveraddress),
         sizeof(m_serveraddress)))
@@ -65,18 +70,32 @@ void ChatServer::Handleclient(const int clientfd_)
 
     Broadcast(username.c_str() + std::string(" joined the chat"), clientfd_);
 
-    while(true)
-    {
-        char buffer[4096];
-        bytes = recv(clientfd_, buffer, sizeof(buffer), 0);
+    std::atomic<bool> running{true};
 
-        if (bytes <= 0)
+    while(running)
+    {
+        std::string from(4096, '\0');
+        bytes = recv(clientfd_, from.data(), from.size(), 0);
+
+        if(bytes <= 0)
         {
             break; // Client disconnected
         }
-        buffer[bytes] = '\0';
-        std::string message = m_clients[clientfd_] + ": " + buffer;
-        Broadcast(message, clientfd_);
+
+        if(Servercommands::Iscommand(from))
+        {
+            if(Servercommands::Isquit(from))
+            {
+                send(clientfd_, nullptr, 0, 0);
+                break;
+            }
+        }
+        else
+        {
+            from[bytes] = '\0';
+            std::string message = m_clients[clientfd_] + ": " + from;
+            Broadcast(message, clientfd_);
+        }
     }
 
     {
@@ -97,7 +116,7 @@ void ChatServer::Broadcast(const std::string& message_, int senderfd_)
     {
         if (fd != senderfd_) // Don't echo back to sender
         {
-            send(fd, message_.c_str(), message_.size(), 0);
+            send(fd, message_.data(), message_.size(), 0);
         }
     }
 }

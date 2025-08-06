@@ -30,16 +30,16 @@ void Communicate::Receivemessages()
     std::string buffer(4096, '\0');
     while(m_running)
     {
-        ssize_t bytes = recv(m_fd, buffer.data(), buffer.size(), 0);
-        if(bytes <= 0)
-        {
-            std::cerr << "Server disconnected!" << std::endl;
-            m_running = false;
-            break;
-        }
-        buffer[bytes] = '\0';
-        std::cout << std::string(buffer.data(), 0, bytes) << std::endl;
+        timeval tv = {2, 0};
+        setsockopt(m_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(timeval));
 
+        ssize_t bytes = recv(m_fd, buffer.data(), buffer.size(), 0);
+
+        if(bytes > 0)
+        {
+            buffer[bytes] = '\0';
+            std::cout << std::string(buffer.data(), 0, bytes) << std::endl;
+        }
     }
 }
 
@@ -50,7 +50,7 @@ void Communicate::Send()
     {
         std::cout << "> ";
         std::getline(std::cin, userinput);
-
+        m_commands.Commandcheck(userinput, &m_running);
         if (!m_running) break;
         {
             if (send(m_fd, userinput.c_str(), userinput.size(), 0) <= 0)

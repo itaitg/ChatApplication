@@ -17,10 +17,12 @@ Chatclient::Chatclient(const int port_,const std::string& ip_)
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_port = htons(port_);
     inet_pton(AF_INET, ip_.c_str(), &serverAddress.sin_addr);
+
     if(-1 == connect(Getsocket(), reinterpret_cast<sockaddr*>(&serverAddress), sizeof(serverAddress)))
     {
         throw std::runtime_error("error: can't connect to server");
     }
+
 }
 
 int Chatclient::Getserversocket() const

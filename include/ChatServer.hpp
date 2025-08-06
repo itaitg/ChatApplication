@@ -10,6 +10,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "Servercommands.hpp"
 #include "Socket.hpp"
 
 class ChatServer: public Socket
@@ -25,6 +26,7 @@ private:
     std::mutex m_safeclients;
     int m_max_clients;
 
+    Servercommands commands;
     void Handleclient(int clientfd_);
     void Broadcast(const std::string& message_, int senderfd_);
 
