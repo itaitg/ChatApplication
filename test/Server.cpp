@@ -10,7 +10,9 @@
 
 int main()
 {
-    ChatServer server(6667);
+    ChatServer server(5666);
+
+    server.Addadmin("itai");
 
     server.Start();
 }

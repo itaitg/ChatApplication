@@ -48,26 +48,46 @@ void ChatServer::Start()
     }
 }
 
+void ChatServer::Addadmin(const std::string& username_)
+{
+    m_admins.push_back(username_);
+}
+
 void ChatServer::Handleclient(const int clientfd_)
 {
     //Get username (first message)
     std::string username(256, '\0');
     const std::string buffer = {"enter username"};
-
-    send(clientfd_ ,buffer.c_str(), buffer.size() + 1, 0);
-    int bytes = recv(clientfd_, username.data() , sizeof(username), 0);
-    if (bytes <= 0)
+    bool name_found = true;
+    while(name_found)
     {
-        close(clientfd_);
-        return;
+        username.resize(256);
+        username[25] = '\0';
+        send(clientfd_ ,buffer.c_str(), buffer.size(), 0);
+        int bytes = recv(clientfd_, username.data() , sizeof(username), 0);
+        if (bytes <= 0)
+        {
+            close(clientfd_);
+            return;
+        }
+        name_found = false;
+        username.resize(bytes);
+        username[bytes] = '\0';
+        for(const auto& [fd, name]: m_clients) //make sure username is unique
+        {
+            if(name == username)
+            {
+                const std::string pick_again = "username take, please pick again.";
+                name_found = true;
+                send(clientfd_ ,pick_again.c_str(), pick_again.size() + 1, 0);
+            }
+        }
     }
-    username[bytes] = '\0';
 
-    {
-        std::lock_guard lock(m_safeclients);
-        m_clients.emplace(std::pair(clientfd_, username.data()));
-    }
-
+        {
+            std::lock_guard lock(m_safeclients);
+            m_clients.emplace(std::pair(clientfd_, username.data()));
+        }
     Broadcast(username.c_str() + std::string(" joined the chat"), clientfd_);
 
     std::atomic<bool> running{true};
@@ -75,26 +95,22 @@ void ChatServer::Handleclient(const int clientfd_)
     while(running)
     {
         std::string from(4096, '\0');
-        bytes = recv(clientfd_, from.data(), from.size(), 0);
+        int bytes = recv(clientfd_, from.data(), from.size(), 0);
 
         if(bytes <= 0)
         {
             break; // Client disconnected
         }
 
-        if(Servercommands::Iscommand(from))
-        {
-            if(Servercommands::Isquit(from))
-            {
-                send(clientfd_, nullptr, 0, 0);
-                break;
-            }
-        }
-        else
+        if(!Servercommands::Iscommand(from))
         {
             from[bytes] = '\0';
             std::string message = m_clients[clientfd_] + ": " + from;
             Broadcast(message, clientfd_);
+        }
+        else
+        {
+
         }
     }
 

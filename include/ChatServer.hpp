@@ -9,6 +9,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "Servercommands.hpp"
 #include "Socket.hpp"
@@ -20,9 +21,10 @@ public:
     ~ChatServer() = default;
 
     void Start();
-
+    void Addadmin(const std::string& username_);
 private:
     std::unordered_map<int, std::string> m_clients;
+    std::vector<std::string> m_admins;
     std::mutex m_safeclients;
     int m_max_clients;
 

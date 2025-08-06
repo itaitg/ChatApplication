@@ -17,7 +17,7 @@ public:
     ~Servercommands() = default;
 
     static bool Iscommand(const std::string& command_);
-    static bool Isquit(const std::string& command_);
+
 
 
 private:

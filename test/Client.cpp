@@ -10,7 +10,7 @@
 
 int main()
 {
-    Chatclient client(6667);
+    Chatclient client(5666);
     Communicate talk(client.Getserversocket());
 
 
