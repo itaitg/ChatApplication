@@ -5,16 +5,18 @@
 #ifndef CHAT_APPLICATION_SOCKET_HPP
 #define CHAT_APPLICATION_SOCKET_HPP
 
+#include <netdb.h>
+
 class Socket
 {
 public:
-    Socket();
+    Socket(const char* port_, const char* ip_);
     ~Socket();
-    int Getsocket() const;
+    int Getfd() const;
+    sockaddr* GetAddr() const;
 private:
-    int m_socket;
-
-    static int Init();
+    int m_fd;
+    addrinfo* m_res;
 };
 
 

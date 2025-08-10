@@ -7,18 +7,19 @@
 
 
 
-#include <string>
 
-#include "Socket.hpp"
 
-class Chatclient: Socket
+#include "TCP_Connect.hpp"
+#include "Communicate.hpp"
+
+class Chatclient: public TCP_Connect
 {
 public:
-    explicit Chatclient(int port_,const std::string& ip_ = "127.0.0.1");
+    explicit Chatclient(const char* port_, const char* ip_ = "127.0.0.1");
     ~Chatclient() = default;
 
-    int Getserversocket() const;
 private:
+    Communicate m_talk;
 
 };
 

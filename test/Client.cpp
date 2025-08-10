@@ -5,16 +5,15 @@
 #include <iostream>
 
 #include "ChatClient.hpp"
-#include "Communicate.hpp"
+
 
 
 int main()
 {
-    Chatclient client(4666);
-    Communicate talk(client.Getserversocket());
+    Chatclient client("4666");
 
 
-    talk.Send();
+
 
 
     return 0;

@@ -4,24 +4,45 @@
 
 #include <sys/socket.h>
 #include <unistd.h>
+#include <netdb.h>
 
 #include "Socket.hpp"
 
+#include <stdexcept>
 
-Socket::Socket(): m_socket(Init())
-{}
+
+Socket::Socket(const char* port, const char* ip_): m_fd(), m_res()
+{
+    addrinfo hints = {};
+    int status = 0;
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    status = getaddrinfo(ip_, port, &hints, &m_res);
+    if(status)
+    {
+        throw std::runtime_error("error: getaddrinfo");
+    }
+    m_fd = socket(m_res->ai_family,m_res->ai_socktype,m_res->ai_protocol);
+    if(m_fd == -1)
+    {
+        throw std::runtime_error("error: socket");
+    }
+}
 
 Socket::~Socket()
 {
-    close(m_socket);
+    freeaddrinfo(m_res);
+    close(m_fd);
 }
 
-int Socket::Getsocket() const
+int Socket::Getfd() const
 {
-    return m_socket;
+    return m_fd;
 }
 
-int Socket::Init()
+sockaddr* Socket::GetAddr() const
 {
-    return socket(AF_INET, SOCK_STREAM, 0);
+    return m_res->ai_addr;
 }
