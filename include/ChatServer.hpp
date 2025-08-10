@@ -10,14 +10,16 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
+#include <poll.h>
 
 #include "Servercommands.hpp"
-#include "Socket.hpp"
+#include "TCP_Listener.hpp"
 
-class ChatServer: public Socket
+class ChatServer: public TCP_Listener
 {
 public:
-    explicit ChatServer(int port_);
+    explicit ChatServer(const char* port_);
     ~ChatServer() = default;
 
     void Start();
@@ -25,13 +27,18 @@ public:
     void Removeadmin(const std::string& username_);
 private:
     std::unordered_map<int, std::string> m_clients;
+    std::vector<pollfd> m_fds;
+    //std::vector<pollfd> m_toremove;
     std::unordered_set<std::string> m_admins;
     std::mutex m_safeclients;
-    int m_max_clients;
+
 
     Servercommands commands;
-    void Handleclient(int clientfd_);
+    //commands to be moved
     void Kickuser(std::string user_);
+
+    void HandleClient(int fd_);
+    void Acceptnewuser();
     void Broadcast(const std::string& message_, int senderfd_);
     void Sendprivate(int fd_, std::string message_);
 

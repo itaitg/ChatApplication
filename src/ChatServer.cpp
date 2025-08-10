@@ -11,42 +11,54 @@
 #include "ChatServer.hpp"
 
 
-ChatServer::ChatServer(const int port_): m_max_clients(5)
+ChatServer::ChatServer(const char* port_) : TCP_Listener(port_)
 {
-    sockaddr_in m_serveraddress{};
-    m_serveraddress.sin_family = AF_INET;
-    m_serveraddress.sin_port = htons(port_);
-    m_serveraddress.sin_addr.s_addr = INADDR_ANY;
-
-    timeval tv{};
-    tv.tv_sec = 2;
-    tv.tv_usec = 0;
-
-    setsockopt(Getsocket(), SOL_SOCKET, SO_REUSEADDR | SO_RCVTIMEO,
-        &tv , sizeof(tv));
-
-    if(-1 == bind(Getsocket(), reinterpret_cast<sockaddr*>(&m_serveraddress),
-        sizeof(m_serveraddress)))
-    {
-        throw std::runtime_error("error: bind");
-    }
-    listen(Getsocket(), m_max_clients);
+    m_fds.push_back({Getfd(), POLLIN, 0});
+    m_fds.push_back({STDIN_FILENO, POLLIN, 0});
 }
-
 
 
 void ChatServer::Start()
 {
-    while(true)
-    {
-        sockaddr_in clientAddress{};
-        socklen_t clientSize = sizeof(clientAddress);
-        int clientfd = accept(Getsocket(), reinterpret_cast<sockaddr*>(&clientAddress),
-            &clientSize);
+    bool running{true};
 
-        std::thread(&ChatServer::Handleclient, this, clientfd).detach();
+    while (running)
+    {
+        int ready = poll(m_fds.data(), m_fds.size(), -1);
+        if (ready == -1)
+        {
+            throw std::runtime_error("error: poll");
+            running = false;
+        }
+
+        if(m_fds[1].revents & POLLIN) //from STDIN
+        {
+
+        }
+
+        // Check for new connections
+        if(m_fds[0].revents & POLLIN)
+        {
+            Acceptnewuser();
+            m_fds[0].revents = POLLOUT;
+        }
+
+        // Check client sockets
+
+        for(const auto& event : m_fds)
+        {
+            if (event.revents & POLLIN)
+            {
+                HandleClient(event.fd);
+            }
+
+        }
+        //remove fds loop and clear
+
     }
 }
+
+
 
 void ChatServer::Addadmin(const std::string& username_)
 {
@@ -63,7 +75,7 @@ void ChatServer::Removeadmin(const std::string& username_)
         }
     }
 }
-
+/*
 void ChatServer::Handleclient(const int clientfd_)
 {
     //Get username (first message)
@@ -149,7 +161,7 @@ void ChatServer::Handleclient(const int clientfd_)
     Broadcast(username.c_str() + std::string(" left the chat"), clientfd_);
     close(clientfd_);
 
-}
+}*/
 
 void ChatServer::Kickuser(std::string user_) //not working (can't recognise names)
 {
@@ -165,6 +177,63 @@ void ChatServer::Kickuser(std::string user_) //not working (can't recognise name
             Broadcast(user_ + " was kicked by admin", -1);
         }
     }
+}
+
+void ChatServer::HandleClient(int fd_)
+{
+    char buffer[4096];
+    int bytes = recv(fd_, buffer, sizeof(buffer) - 1, 0);
+
+    if (bytes <= 0)
+    {
+        // Client disconnected
+        Broadcast(m_clients[fd_] + " left the chat", fd_);
+        m_clients.erase(fd_);
+        //m_toremove.push_back({fd_, 0, 0});
+        return;
+    }
+
+    buffer[bytes] = '\0';
+    std::string message(buffer);
+
+    // Command handling
+    // if(message.rfind('/', 0) == 0)
+    // {
+    //     if (message == "/quit") return false;
+    //     if (message.starts_with("/kick ") && m_clients[clientFd] == "admin") {
+    //         KickUser(message.substr(6));
+    //     }
+    // }
+    //else // Broadcast normal message
+    {
+        Broadcast(m_clients[fd_] + ": " + message, fd_);
+    }
+}
+
+
+void ChatServer::Acceptnewuser()
+{
+
+    int newfd = accept(Getfd(), nullptr, nullptr);
+
+    // Add to poll list
+    m_fds.push_back({newfd ,POLLIN, 0});
+
+    // Receive username (first message)
+    send(newfd ,"enter username", 14, 0);
+
+    char username[256];
+    int bytes = recv(newfd, username, sizeof(username), 0);
+    if (bytes <= 0)
+    {
+        close(newfd);
+        return;
+    }
+    username[bytes] = '\0';
+    m_clients[newfd] = username;
+
+
+    Broadcast(username + std::string(" joined the chat"), newfd);
 }
 
 
@@ -183,6 +252,7 @@ void ChatServer::Broadcast(const std::string& message_, int senderfd_)
 
 void ChatServer::Sendprivate(int fd_, std::string message_)
 {
+    send(fd_, message_.data(), message_.size(), 0);
 }
 
 
