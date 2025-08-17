@@ -7,20 +7,28 @@
 
 
 #include <atomic>
-#include <string>
+#include <unordered_set>
+
+#include "Commands.hpp"
 
 
-class Servercommands
+class Servercommands : public Commands
 {
 public:
-    Servercommands() = default;
-    ~Servercommands() = default;
+    Servercommands(std::atomic<bool>* running_, std::unordered_map<int, const std::string>* clients_
+        , std::unordered_set<std::string>* admins_, std::vector<int>* remove_list_ );
 
-    static bool Iscommand(const std::string& command_);
-
-
+    void HandleQuit(const int& fd_);
+    void HandleKick(const std::string& username);
+    void HandleHelp(const int & fd_);
 
 private:
+    std::atomic<bool>* m_running;
+    std::unordered_map<int, const std::string>* m_clients;
+    std::vector<int>* m_toremove;
+    std::unordered_set<std::string>* m_admins;
+
+    bool Isadmin(const std::string& username_);
 };
 
 

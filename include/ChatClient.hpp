@@ -6,11 +6,12 @@
 #define CHATAPPLICATION_TCPCLIENT_HPP
 
 
-
-
+#include <atomic>
+#include <vector>
+#include <sys/poll.h>
 
 #include "TCP_Connect.hpp"
-#include "Communicate.hpp"
+#include "Clientcommands.hpp"
 
 class Chatclient: public TCP_Connect
 {
@@ -19,7 +20,9 @@ public:
     ~Chatclient() = default;
 
 private:
-    Communicate m_talk;
+    std::atomic<bool> m_running;
+    std::vector<pollfd> m_fds;
+    Clientcommands m_commands;
 
 };
 
