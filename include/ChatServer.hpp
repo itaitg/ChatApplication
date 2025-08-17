@@ -20,7 +20,7 @@ class ChatServer: public TCP_Listener
 {
 public:
     explicit ChatServer(const char* port_);
-    ~ChatServer() = default;
+    ~ChatServer();
 
     void Start();
     void Addadmin(const std::string& username_);

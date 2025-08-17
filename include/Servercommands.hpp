@@ -20,7 +20,8 @@ public:
 
     void HandleQuit(const int& fd_);
     void HandleKick(const std::string& username);
-    void HandleHelp(const int & fd_);
+    void HandleHelp(const int& fd_);
+    void Handleprivate(const std::string& message_, const int& fd_);
 
 private:
     std::atomic<bool>* m_running;

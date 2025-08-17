@@ -18,6 +18,7 @@ Servercommands::Servercommands(std::atomic<bool>* running_,
     RegisterCommand("quit", [this](const auto&, const int& fd_) { this->HandleQuit(fd_); });
     RegisterCommand("kick", [this](const std::string& args, const int&) { this->HandleKick(args);});
     RegisterCommand("help", [this](const auto&, const int& fd_) { this->HandleHelp(fd_); });
+    RegisterCommand("private", [this](const std::string& args, const int& fd_) { this->Handleprivate(args, fd_);});
 }
 
 void Servercommands::HandleQuit(const int& fd_)
@@ -31,7 +32,7 @@ void Servercommands::HandleQuit(const int& fd_)
 void Servercommands::HandleKick(const std::string& username)
 {
     for (auto& [fd, name] : *m_clients)
-        {
+    {
         if (name == username)
         {
             //send(fd, "You were kicked by admin!", 25, 0);
@@ -47,7 +48,8 @@ void Servercommands::HandleHelp(const int& fd_)
 {
     std::string helpmessage("Available commands:\n"
                 "/quit - Disconnect from server\n"
-                "/help - Show this message");
+                "/help - Show this message\n"
+                "/private <username> <message> - Send private message");
 
     send(fd_, helpmessage.data(), helpmessage.size(), 0);
 }
@@ -62,4 +64,36 @@ bool Servercommands::Isadmin(const std::string& username_)
         }
     }
         return false;
+}
+
+void Servercommands::Handleprivate(const std::string& message_, const int& fd_)
+{
+    size_t spacePos = message_.find(' ');
+    if (spacePos == std::string::npos)
+    {
+        send(fd_, "Usage: /private <username> <message>", 36, 0);
+        return;
+    }
+
+
+    std::string sender;
+
+    for (auto& [fd, name] : *m_clients)
+    {
+        if(fd == fd_)
+            sender = name;
+    }
+
+    const std::string recipient = message_.substr(0, spacePos);
+    const std::string message = "PM from " + sender + ": " + message_.substr(spacePos + 1);
+
+
+    for (auto& [fd, name] : *m_clients)
+    {
+        if (name == recipient)
+        {
+            send(fd, message.data(), message.size(), 0);
+            break;
+        }
+    }
 }

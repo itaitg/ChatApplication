@@ -18,6 +18,29 @@ ChatServer::ChatServer(const char* port_) : TCP_Listener(port_),m_running(true),
     m_fds.push_back({STDIN_FILENO, POLLIN, 0});
 }
 
+ChatServer::~ChatServer()
+{
+    for(const auto& [fd, name] : m_clients)
+    {
+        m_toremove.emplace_back(fd);
+    }
+
+    for(const auto& fd : m_toremove)
+    {
+        send(fd, "/quit", 5, 0);
+        close(fd);
+        m_clients.erase(fd);
+        for(auto iter = m_fds.begin(); iter < m_fds.end(); ++iter)
+        {
+            if(iter->fd == fd)
+            {
+                m_fds.erase(iter);
+                break;
+            }
+        }
+    }
+}
+
 
 void ChatServer::Start()
 {
@@ -126,7 +149,10 @@ bool ChatServer::HandleClient(int fd_)
     if(message.rfind('/', 0) == 0)
     {
          //change to client commands
-        m_server_commands.Execute(message, fd_);
+        if(!m_server_commands.Execute(message, fd_))
+        {
+            send(fd_, "command doesn't exist\ntype /help for  help", 46, 0);
+        }
         return true;
     }
 
